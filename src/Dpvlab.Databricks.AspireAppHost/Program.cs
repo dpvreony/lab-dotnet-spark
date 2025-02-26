@@ -102,7 +102,7 @@ namespace Dpvlab.Databricks.AspireAppHost
                     "http")
                 .WithBindMount(
                     "notebooks",
-                    "/home/jovyan")
+                    "/home/jovyan/work")
                 .WithVolume(
                     "jupyter-data",
                     "/data")
