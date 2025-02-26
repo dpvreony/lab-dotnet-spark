@@ -82,9 +82,6 @@ namespace Dpvlab.Databricks.AspireAppHost
             // TODO: add https://github.com/dotnet/spark sample app
             // TODO: add grafana sample for spark metrics
 
-
-            builder.Build().Run();
-
             return builder;
         }
 
