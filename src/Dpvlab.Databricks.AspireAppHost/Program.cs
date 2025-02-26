@@ -39,6 +39,7 @@ namespace Dpvlab.Databricks.AspireAppHost
 
             const string masterHostName = "spark-master";
             const string imageName = "bitnami/spark";
+            const int masterPort = 7077;
 
             var sparkContainer = builder.AddContainer(
                     masterHostName,
@@ -47,23 +48,58 @@ namespace Dpvlab.Databricks.AspireAppHost
                 .WithEnvironment("SPARK_MASTER_HOST", "0.0.0.0")
                 .WithEnvironment("SPARK_MASTER_PORT", "7077")
                 .WithEndpoint(8080, 8080, "http", name: "web-ui")
-                .WithEndpoint(7077, 7077, name: "spark-master")
+                .WithEndpoint(7077, masterPort, name: "spark-master")
                 .WithEndpoint(4040, 4040, name: "spark-app-ui");
 
             var sparkMasterUri = new UriBuilder
             {
                 Scheme = "spark",
                 Host = masterHostName,
-                Port = 7077
+                Port = masterPort
             };
+            // $"spark://spark-master:7077"
 
             var sparkWorker = builder.AddContainer(
                     "spark-worker",
                     imageName)
-                .WithEnvironment("SPARK_MODE", "worker")
-                .WithEnvironment("SPARK_MASTER_URL", sparkMasterUri.ToString)
-                .WithEndpoint(8081, 8081)
+                .WithEnvironment(
+                    "SPARK_MODE",
+                    "worker")
+                .WithEnvironment(
+                    "SPARK_MASTER_URL",
+                    sparkMasterUri.Uri.GetLeftPart(UriPartial.Authority))
+                .WithEndpoint(
+                    8081,
+                    8081,
+                    "http")
                 .WaitFor(sparkContainer);
+
+            var jupyter = builder.AddContainer(
+                    "jupyter",
+                    "jupyter/pyspark-notebook")
+                .WithEnvironment(
+                    "JUPYTER_TOKEN",
+                    "mynotebook")
+                .WithEndpoint(
+                    8888,
+                    8888,
+                    "http")
+                .WithBindMount(
+                    "notebooks",
+                    "/notebooks")
+                .WithVolume(
+                    "jupyter-data",
+                    "/data")
+                .WithVolume(
+                    "jupyter-user",
+                    "/home/root/.jupyter")
+                .WaitFor(sparkContainer)
+                .WaitFor(sparkWorker);
+
+            // TODO: add local python notebook sample to drop in mounted volume
+            // TODO: add https://github.com/dotnet/spark sample app
+            // TODO: add grafana sample for spark metrics
+
 
             builder.Build().Run();
 
