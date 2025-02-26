@@ -5,6 +5,7 @@
 using System;
 using System.Threading.Tasks;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 
 namespace Dpvlab.Databricks.AspireAppHost
 {
@@ -72,8 +73,24 @@ namespace Dpvlab.Databricks.AspireAppHost
                     8081,
                     8081,
                     "http")
-                .WaitFor(sparkContainer);
+                .WithParentRelationship(sparkContainer);
 
+            AddJupyter(builder, sparkContainer, sparkWorker);
+
+            // TODO: generate a password into jupyter store https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html
+            // TODO: add local python notebook sample to drop in mounted volume
+            // TODO: add https://github.com/dotnet/spark sample app
+            // TODO: add grafana sample for spark metrics
+
+
+            builder.Build().Run();
+
+            return builder;
+        }
+
+        private static void AddJupyter(IDistributedApplicationBuilder builder, IResourceBuilder<ContainerResource> sparkContainer,
+            IResourceBuilder<ContainerResource> sparkWorker)
+        {
             var jupyter = builder.AddContainer(
                     "jupyter",
                     "jupyter/pyspark-notebook")
@@ -95,15 +112,6 @@ namespace Dpvlab.Databricks.AspireAppHost
                     "/home/root/.jupyter")
                 .WaitFor(sparkContainer)
                 .WaitFor(sparkWorker);
-
-            // TODO: add local python notebook sample to drop in mounted volume
-            // TODO: add https://github.com/dotnet/spark sample app
-            // TODO: add grafana sample for spark metrics
-
-
-            builder.Build().Run();
-
-            return builder;
         }
 
         /// <summary>
