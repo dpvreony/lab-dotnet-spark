@@ -38,6 +38,8 @@ namespace Dpvlab.Databricks.AspireAppHost
 
             //builder.AddContainer("spark", "jupyter/pyspark-notebook").WithHttpEndpoint(8888, 8888);
 
+            var sqlServer = builder.AddSqlServer("sql").WithDataVolume();
+
             const string masterHostName = "spark-master";
             const string imageName = "bitnami/spark";
             const int masterPort = 7077;
