@@ -44,6 +44,10 @@ namespace Dpvlab.Databricks.AspireAppHost
             const string imageName = "bitnami/spark";
             const int masterPort = 7077;
 
+            var kafka = builder.AddKafka("kafka")
+                .WithKafkaUI()
+                .WithDataVolume(isReadOnly: false);
+
             var sparkContainer = builder.AddContainer(
                     masterHostName,
                     imageName)
