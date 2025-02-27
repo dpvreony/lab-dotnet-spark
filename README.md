@@ -29,10 +29,13 @@ This setup ensures that a testable Spark environment is created, integrating SQL
 
 ```mermaid
 graph TD
-    A[SQL Server] -->|Data Source| B(Spark Master)
-    B --> C(Spark Worker)
-    B --> D(Jupyter Notebook)
-    C --> D
+    SQLServer[SQL Server] -->|Data Source| SparkMaster(Spark Master)
+    SparkMaster --> SparkWorker(Spark Worker)
+    SparkMaster --> JupyterNotebook(Jupyter Notebook)
+    SparkWorker --> JupyterNotebook
+    Kafka --> SparkWorker
+    Kafka --> KafkaUI
+    SQLServer --> CloudBeaver
 ```
 
 - **SQL Server**: Acts as the data source for the Spark environment.
