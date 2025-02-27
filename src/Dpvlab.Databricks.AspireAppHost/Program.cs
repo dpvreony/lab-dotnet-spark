@@ -40,6 +40,8 @@ namespace Dpvlab.Databricks.AspireAppHost
 
             var sqlServer = builder.AddSqlServer("sql").WithDataVolume();
 
+            AddCloudBeaver(builder);
+
             const string masterHostName = "spark-master";
             const string imageName = "bitnami/spark";
             const int masterPort = 7077;
@@ -89,6 +91,17 @@ namespace Dpvlab.Databricks.AspireAppHost
             // TODO: add grafana sample for spark metrics
 
             return builder;
+        }
+
+        private static void AddCloudBeaver(IDistributedApplicationBuilder builder)
+        {
+            var jupyter = builder.AddContainer(
+                "cloudbeaver",
+                "dbeaver/cloudbeaver")
+                    .WithEndpoint(
+                        8978,
+                        8978,
+                        "http");
         }
 
         private static void AddJupyter(IDistributedApplicationBuilder builder, IResourceBuilder<ContainerResource> sparkContainer,
