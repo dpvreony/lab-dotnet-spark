@@ -26,6 +26,18 @@ namespace Dpvlab.Databricks.AspireAppHost
         }
 
         /// <summary>
+        /// Gets the distributed application.
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        /// <returns>Instance of the application.</returns>
+        public static DistributedApplication GetApplication(string[] args)
+        {
+            var builder = GetBuilder(args);
+            var app = builder.Build();
+            return app;
+        }
+
+        /// <summary>
         /// Gets the builder for the distributed application.
         /// </summary>
         /// <param name="args">Command line arguments.</param>
@@ -34,13 +46,21 @@ namespace Dpvlab.Databricks.AspireAppHost
         {
             var builder = DistributedApplication.CreateBuilder(args);
 
+            if (string.IsNullOrWhiteSpace(builder.Configuration["Parameters:sql-password"]))
+            {
+                throw new InvalidOperationException(
+                    "you must set a \"Parameters:sql-password\" secret, otherwise the application won't work correctly.");
+            }
+
             //builder.AddContainer("spark", "apache/spark").WithEntrypoint("/opt/spark/bin/spark-shell");
 
             //builder.AddContainer("spark", "jupyter/pyspark-notebook").WithHttpEndpoint(8888, 8888);
 
             var sqlServer = builder.AddSqlServer("sql").WithDataVolume();
 
-            AddCloudBeaver(builder);
+            var sampleDatabase = sqlServer.AddDatabase("spark-sample");
+
+            _ = AddCloudBeaver(builder);
 
             const string masterHostName = "spark-master";
             const string imageName = "bitnami/spark";
@@ -83,7 +103,14 @@ namespace Dpvlab.Databricks.AspireAppHost
                     "http")
                 .WithParentRelationship(sparkContainer);
 
-            AddJupyter(builder, sparkContainer, sparkWorker);
+            _ = AddJupyter(builder, sparkContainer, sparkWorker);
+
+            _ = AddGrafana(builder);
+
+            _ = builder.AddContainer("prometheus", "prom/prometheus")
+                .WithBindMount("../../eng/prometheus", "/etc/prometheus", isReadOnly: true)
+                .WithHttpEndpoint(/* This port is fixed as it's referenced from the Grafana config */ port: 9090, targetPort: 9090);
+
 
             // TODO: generate a password into jupyter store https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html
             // TODO: add local python notebook sample to drop in mounted volume
@@ -93,18 +120,20 @@ namespace Dpvlab.Databricks.AspireAppHost
             return builder;
         }
 
-        private static void AddCloudBeaver(IDistributedApplicationBuilder builder)
+        private static IResourceBuilder<ContainerResource> AddCloudBeaver(IDistributedApplicationBuilder builder)
         {
-            var jupyter = builder.AddContainer(
+            var cloudBeaver= builder.AddContainer(
                 "cloudbeaver",
                 "dbeaver/cloudbeaver")
                     .WithEndpoint(
                         8978,
                         8978,
                         "http");
+
+            return cloudBeaver;
         }
 
-        private static void AddJupyter(IDistributedApplicationBuilder builder, IResourceBuilder<ContainerResource> sparkContainer,
+        private static IResourceBuilder<ContainerResource> AddJupyter(IDistributedApplicationBuilder builder, IResourceBuilder<ContainerResource> sparkContainer,
             IResourceBuilder<ContainerResource> sparkWorker)
         {
             var jupyter = builder.AddContainer(
@@ -128,18 +157,17 @@ namespace Dpvlab.Databricks.AspireAppHost
                     "/home/root/.jupyter")
                 .WaitFor(sparkContainer)
                 .WaitFor(sparkWorker);
+
+            return jupyter;
         }
 
-        /// <summary>
-        /// Gets the distributed application.
-        /// </summary>
-        /// <param name="args">Command line arguments.</param>
-        /// <returns>Instance of the application.</returns>
-        public static DistributedApplication GetApplication(string[] args)
+        private static IResourceBuilder<ContainerResource> AddGrafana(IDistributedApplicationBuilder builder)
         {
-            var builder = GetBuilder(args);
-            var app = builder.Build();
-            return app;
+            var grafana = builder.AddContainer("grafana", "grafana/grafana")
+                .WithBindMount("../../eng/grafana/config", "/etc/grafana", isReadOnly: true)
+                .WithBindMount("../../eng/grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
+                .WithHttpEndpoint(targetPort: 3000, name: "http");
+            return grafana;
         }
     }
 }

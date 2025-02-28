@@ -7,6 +7,7 @@
     <IsAspireHost>true</IsAspireHost>
     <NoWarn>CS1591</NoWarn>
     <IsPackable>False</IsPackable>
+    <UserSecretsId>267d16cf-71fd-4be2-b9f1-5aede17eddca</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
