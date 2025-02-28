@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Microsoft.Extensions.Configuration;
 
 namespace Dpvlab.Databricks.AspireAppHost
 {
@@ -108,7 +109,7 @@ namespace Dpvlab.Databricks.AspireAppHost
             _ = AddGrafana(builder);
 
             _ = builder.AddContainer("prometheus", "prom/prometheus")
-                .WithBindMount("../../eng/prometheus", "/etc/prometheus", isReadOnly: true)
+                .WithBindMount("prometheus", "/etc/prometheus", isReadOnly: true)
                 .WithHttpEndpoint(/* This port is fixed as it's referenced from the Grafana config */ port: 9090, targetPort: 9090);
 
 
@@ -164,8 +165,8 @@ namespace Dpvlab.Databricks.AspireAppHost
         private static IResourceBuilder<ContainerResource> AddGrafana(IDistributedApplicationBuilder builder)
         {
             var grafana = builder.AddContainer("grafana", "grafana/grafana")
-                .WithBindMount("../../eng/grafana/config", "/etc/grafana", isReadOnly: true)
-                .WithBindMount("../../eng/grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
+                .WithBindMount("grafana/config", "/etc/grafana", isReadOnly: true)
+                .WithBindMount("grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
                 .WithHttpEndpoint(targetPort: 3000, name: "http");
             return grafana;
         }
