@@ -18,6 +18,6 @@ jobs:
       deployments: read
       pages: write
       id-token: write
-    uses: dpvreony/github-action-workflows/.github/workflows/dotnet-ci.yml@502371dc7005009a8334aa6bd4da238cd3b5c72d
+    uses: dpvreony/github-action-workflows/.github/workflows/dotnet-ci.yml@3e9312ff862698dae8f1ef16f761ab0270091b41
     with:
       solutionName: "Dpvlab.Spark"
