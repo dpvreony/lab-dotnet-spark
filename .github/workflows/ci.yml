@@ -19,6 +19,6 @@ jobs:
       pages: write
       id-token: write
       pull-requests: write
-    uses: dpvreony/github-action-workflows/.github/workflows/dotnet-ci.yml@6d33c5b8261cc2fa7b090322716b9696bf6aeffe
+    uses: dpvreony/github-action-workflows/.github/workflows/dotnet-ci.yml@082204680ec9010ae205da5fcdcc2c076d76f775
     with:
       solutionName: "Dpvlab.Spark"
