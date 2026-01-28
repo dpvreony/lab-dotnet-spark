@@ -13,12 +13,14 @@ permissions:
 jobs:
   build:
     permissions:
-      actions: read
+      actions: write
       contents: write
       deployments: read
       pages: write
       id-token: write
       pull-requests: write
+      packages: read
+      security-events: write
     uses: dpvreony/github-action-workflows/.github/workflows/dotnet-ci.yml@1.7.2
     with:
       solutionName: "Dpvlab.Spark"
